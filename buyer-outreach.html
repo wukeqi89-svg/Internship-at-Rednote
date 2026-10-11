@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>买手建联追踪看板 · 只读演示</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f7f8fa;color:#263238;font:14px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+main{max-width:1200px;margin:auto;padding:20px}h1{font-size:22px;margin:0}h2{font-size:17px}.muted{color:#87919e;font-size:12px}
+header,.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+header{border-bottom:1px solid #ddd;padding-bottom:14px}.notice{background:#fff7e6;border:1px solid #ffe3ae;padding:12px;border-radius:8px;margin:16px 0}
+.box,.stat{background:white;border:1px solid #e6e8ed;border-radius:8px;padding:14px;margin-top:12px}
+.pulse,.stats,.pool{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pulse button,.pool button{background:#f5f9ff;border:1px solid #e2eaf5;border-radius:6px;text-align:left;padding:12px;font:inherit;cursor:pointer}
+.stats strong{display:block;font-size:22px;margin-top:5px}.tabs{display:flex;gap:8px;margin:18px 0}.tabs button,.btn{background:white;border:1px solid #d9dce2;border-radius:6px;padding:8px 12px;cursor:pointer}.tabs button.on{color:#1677ff;border-color:#1677ff}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:white;border:1px solid #e6e8ed}.day{min-height:90px;padding:6px;border-right:1px solid #eee;border-bottom:1px solid #eee;font-size:12px}.day button{display:block;width:100%;text-align:left;border:0;border-left:3px solid #1677ff;background:#eaf4ff;border-radius:3px;margin-top:5px;padding:5px;cursor:pointer;font-size:11px}.dim{color:#b2b9c2;background:#fafafa}
+table{width:100%;border-collapse:collapse;background:white}th,td{text-align:left;border-bottom:1px solid #eee;padding:11px}.hide{display:none}.overlay{position:fixed;inset:0;background:#0008;display:none;place-items:center;padding:15px}.overlay.open{display:grid}.dialog{background:white;border-radius:9px;padding:20px;max-width:460px;width:100%}
+@media(max-width:700px){main{padding:12px}.pulse,.pool{grid-template-columns:1fr}.day{min-height:65px;padding:2px}.day button{font-size:9px;overflow:hidden;text-overflow:ellipsis}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>📇 买手建联追踪看板</h1><span class="muted">月历协作 · 新开排期 · 买手池</span></div><strong>只读演示</strong></header>
+<div class="notice">所有买手、合作方、日期及进展均为虚构示例。本页不连接内部数据，也不能新增、编辑或删除记录。</div>
+<section class="box"><h2>⚡ 阶段动态</h2><div class="pulse">
+<button onclick="detail(0)">🔹 新建联买手：示例买手 A</button>
+<button onclick="detail(2)">🟢 新明确合作：示例买手 C</button>
+<button onclick="detail(1)">🟠 新增排期：示例买手 B</button>
+</div></section>
+<div class="bar" style="margin-top:16px"><div><button class="btn" onclick="move(-1)">‹</button> <strong id="month"></strong> <button class="btn" onclick="move(1)">›</button> <button class="btn" onclick="reset()">回到示例月</button></div><span class="muted">非实时数据</span></div>
+<div class="stats" id="stats"></div>
+<nav class="tabs"><button class="on" onclick="tab('calendar',this)">📅 月历协作</button><button onclick="tab('launch',this)">🎬 新开排期</button><button onclick="tab('pool',this)">⭐ 新开买手池</button></nav>
+<section id="calendar"><div class="box"><h2>建联月历</h2><div class="cal" id="days"></div></div></section>
+<section id="launch" class="hide"><div class="box"><h2>新开排期列表</h2><table><thead><tr><th>买手</th><th>合作方</th><th>预计档期</th></tr></thead><tbody id="launchRows"></tbody></table></div></section>
+<section id="pool" class="hide"><div class="box"><h2>新开买手池</h2><div class="pool" id="poolRows"></div></div></section>
+<p class="muted">本页仅用于展示原应用的看板框架；不代表真实合作承诺或实际排期。</p>
+</main>
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeDialog()"><div class="dialog"><button class="btn" style="float:right" onclick="closeDialog()">关闭</button><h2 id="name"></h2><p id="info"></p><p class="muted">虚构示例 · 只读</p></div></div>
+<script>
+const data=[
+{name:'示例买手 A',partner:'合作方甲',day:3,status:'初次沟通',date:'待确认'},
+{name:'示例买手 B',partner:'合作方乙',day:8,status:'待排期',date:'10月18日'},
+{name:'示例买手 C',partner:'合作方丙',day:12,status:'已确认',date:'10月23日'},
+{name:'示例买手 D',partner:'合作方丁',day:19,status:'需求沟通',date:'待确认'},
+{name:'示例买手 E',partner:'合作方戊',day:25,status:'待跟进',date:'待确认'}];
+let year=2026,month=10;
+function current(){return year===2026&&month===10?data:[]}
+function render(){
+document.getElementById('month').textContent=`${year}年${month}月`;
+const rows=current();
+document.getElementById('stats').innerHTML=[['建联条目',rows.length],['示例买手',rows.length],['预计排期',rows.filter(x=>x.date!=='待确认').length]].map(x=>`<div class="stat"><span class="muted">${x[0]}</span><strong>${x[1]}</strong></div>`).join('');
+const offset=(new Date(year,month-1,1).getDay()+6)%7;
+document.getElementById('days').innerHTML=['一','二','三','四','五','六','日'].map(x=>`<div class="day">${x}</div>`).join('')+
+Array.from({length:42},(_,i)=>{const d=new Date(year,month-1,1-offset+i),inMonth=d.getMonth()===month-1;return `<div class="day ${inMonth?'':'dim'}">${d.getDate()}${inMonth?rows.map((r,k)=>r.day===d.getDate()?`<button onclick="detail(${k})">${r.name}</button>`:'').join(''):''}</div>`}).join('');
+document.getElementById('launchRows').innerHTML=rows.filter(x=>x.date!=='待确认').map(x=>`<tr><td>${x.name}</td><td>${x.partner}</td><td>${x.date}</td></tr>`).join('')||'<tr><td colspan="3">本月没有示例排期</td></tr>';
+document.getElementById('poolRows').innerHTML=rows.map((x,i)=>`<button onclick="detail(${i})"><strong>${x.name}</strong><p>${x.partner} · ${x.status}</p><small>${x.date}</small></button>`).join('')||'本月没有示例记录';
+}
+function move(n){month+=n;if(month<1){month=12;year--}if(month>12){month=1;year++}render()}
+function reset(){year=2026;month=10;render()}
+function tab(id,el){for(const s of ['calendar','launch','pool'])document.getElementById(s).classList.toggle('hide',s!==id);document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b===el))}
+function detail(i){const x=data[i];document.getElementById('name').textContent=x.name;document.getElementById('info').textContent=`合作方：${x.partner}｜状态：${x.status}｜预计档期：${x.date}`;document.getElementById('overlay').classList.add('open')}
+function closeDialog(){document.getElementById('overlay').classList.remove('open')}
+render();
+</script>
+</body>
+</html>
